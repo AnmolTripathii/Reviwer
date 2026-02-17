@@ -34,6 +34,18 @@ const useAuthStore = create(persist((set, get) => ({
       // ignore
     }
   },
+  // initialize store after rehydrate: set api header and optionally load profile
+  initialize: async () => {
+    const { token } = get()
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      try {
+        await get().loadProfile()
+      } catch (e) {
+        // ignore
+      }
+    }
+  },
   isAdmin: () => {
     const u = get().user
     return u && u.role === 'admin'

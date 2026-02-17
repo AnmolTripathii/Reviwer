@@ -39,11 +39,11 @@ export default function BusinessList() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filtered.map(b => (
           <div
-            key={b.id}
-            onClick={() => navigate(`/businesses/${b.id}`)}
+            key={b._id}
+            onClick={() => navigate(`/businesses/${b._id}`)}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/businesses/${b.id}`) }}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/businesses/${b._id}`) }}
             className="cursor-pointer p-4 bg-white rounded-xl border hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-200 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
@@ -52,12 +52,15 @@ export default function BusinessList() {
               </div>
               <div>
                 <div className="font-medium text-sm">{b.name}</div>
-                <div className="text-xs text-gray-500 flex items-center gap-2"><MapPin className="w-3 h-3" />{b.category} • {b.location}</div>
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <MapPin className="w-3 h-3" />
+                  {b.category} • {b.address?.city || (b.location?.coordinates ? `${b.location.coordinates[1].toFixed(3)}, ${b.location.coordinates[0].toFixed(3)}` : 'Unknown')}
+                </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="flex items-center justify-end gap-1 text-sm font-semibold"><Star className="w-4 h-4 text-yellow-400" /> {b.avgRating || '—'}</div>
-              <div className="text-xs text-gray-400">{b.ratingsCount || 0} reviews</div>
+              <div className="flex items-center justify-end gap-1 text-sm font-semibold"><Star className="w-4 h-4 text-yellow-400" /> {b.averageRating ?? b.avgRating ?? '—'}</div>
+              <div className="text-xs text-gray-400">{b.totalReviews ?? b.ratingsCount ?? 0} reviews</div>
             </div>
           </div>
         ))}

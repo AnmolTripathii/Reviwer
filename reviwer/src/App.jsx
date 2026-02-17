@@ -14,6 +14,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 function App() {
   const user = useAuthStore(state => state.user)
+  React.useEffect(() => {
+    // initialize auth store (sets api header from persisted token and loads profile)
+    useAuthStore.getState().initialize()
+  }, [])
 
   if (!user) {
     return (

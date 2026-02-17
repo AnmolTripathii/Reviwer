@@ -17,6 +17,13 @@ export default function BusinessDetail() {
   }, [id])
 
   const reviewsState = useReviewStore(state => state.reviews)
+  const [filterCategory, setFilterCategory] = React.useState('')
+
+  React.useEffect(() => {
+    fetchReviewsForBusiness(id, filterCategory ? { category: filterCategory } : {})
+  }, [filterCategory, id])
+
+  const categories = Array.from(new Set(reviewsState.map(r => r.category).filter(Boolean)))
 
   if (!business) {
     return (
@@ -35,20 +42,30 @@ export default function BusinessDetail() {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           <h1 className="text-2xl font-semibold mt-2">{business.name}</h1>
-          <div className="text-sm text-gray-500">{business.category} • {business.location}</div>
+          <div className="text-sm text-gray-500">
+            {business.category} • {business.address?.city || (business.location?.coordinates ? `${business.location.coordinates[1].toFixed(3)}, ${business.location.coordinates[0].toFixed(3)}` : 'Unknown')}
+          </div>
         </div>
         <div className="text-right">
           <div className="flex items-center gap-2 justify-end">
             <Star className="w-5 h-5 text-yellow-400" />
-            <div className="font-semibold">{business.avgRating || '—'}</div>
+            <div className="font-semibold">{business.averageRating ?? business.avgRating ?? '—'}</div>
           </div>
-          <div className="text-sm text-gray-400">{business.ratingsCount || 0} reviews</div>
+          <div className="text-sm text-gray-400">{business.totalReviews ?? business.ratingsCount ?? 0} reviews</div>
         </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2 bg-white p-4 rounded-xl shadow-md">
-          <h3 className="font-semibold mb-3">Reviews</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold mb-3">Reviews</h3>
+            <div>
+              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="border rounded px-2 py-1 text-sm">
+                <option value="">All categories</option>
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
           {reviewsState.length === 0 ? (
             <div className="text-gray-500">No reviews yet.</div>
           ) : (
@@ -57,7 +74,7 @@ export default function BusinessDetail() {
                 <li key={r._id} className="border rounded-lg p-3">
                   <div className="text-sm text-gray-700">{r.comment}</div>
                   <div className="text-xs text-gray-400 mt-2">By {r.user?.email || r.authorEmail} • {new Date(r.createdAt).toLocaleString()}</div>
-                  <div className="mt-2 text-sm text-gray-600">Scores — Quality: {r.rating.quality}, Service: {r.rating.service}, Value: {r.rating.value}</div>
+                  <div className="mt-2 text-sm text-gray-600">Scores — Quality: {r.rating?.quality}, Service: {r.rating?.service}, Value: {r.rating?.value}</div>
                 </li>
               ))}
             </ul>
@@ -68,7 +85,7 @@ export default function BusinessDetail() {
           <h4 className="font-semibold">About</h4>
           <div className="text-sm text-gray-600 mt-2">
             <div><strong>Category:</strong> {business.category}</div>
-            <div className="mt-1"><strong>Location:</strong> {business.location}</div>
+            <div className="mt-1"><strong>Location:</strong> {business.address?.city || (business.location?.coordinates ? `${business.location.coordinates[1].toFixed(3)}, ${business.location.coordinates[0].toFixed(3)}` : 'Unknown')}</div>
           </div>
         </aside>
       </div>
