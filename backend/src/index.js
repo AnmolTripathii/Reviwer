@@ -20,16 +20,21 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database connection function
+// Database connection function (persistent for server lifetime)
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ Connected to MongoDB');
+    // Read URI from env, trim surrounding quotes if present
+
+    
+
+    // Connect and keep the connection open for the app lifetime
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/reviwer')
+    console.log('MONGOOSE CONNECTED TO', conn.connection.host)
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1); // Exit process with failure
+    console.error('MongoDB connection error:', error)
+    throw error
   }
-};
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -62,11 +67,16 @@ app.use((err, req, res, next) => {
 
 // Start server function
 const startServer = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-  });
-};
+  try {
+    await connectDB()
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`)
+    })
+  } catch (err) {
+    console.error('Failed to start server due to DB error:', err)
+    process.exit(1)
+  }
+}
 
-// Start the application
-startServer();
+// Start the application //
+startServer()

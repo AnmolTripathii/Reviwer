@@ -14,3 +14,10 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Test accounts
+
+- Admin: `admin@test.com` / `AdminPass123`
+- User: `user@test.com` / `UserPass123`
+
+Start the dev server with `npm run dev` in the `reviwer` folder. The frontend uses client-side mock auth and persisted zustand stores for demo purposes.
