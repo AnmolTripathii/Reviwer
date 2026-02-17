@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import useBusinessStore from '../stores/businessStore'
 import useReviewStore from '../stores/reviewStore'
 import { Star, ArrowLeft } from 'lucide-react'
+import ReviewModal from '../components/ReviewModal'
 
 export default function BusinessDetail() {
   const { id } = useParams()
@@ -13,11 +14,20 @@ export default function BusinessDetail() {
   const reviews = React.useMemo(() => [], [])
 
   React.useEffect(() => {
-    fetchReviewsForBusiness(id)
+    console.log('BusinessDetail mount/useEffect id:', id)
+    if (id) {
+      fetchReviewsForBusiness(id)
+    } else {
+      console.warn('BusinessDetail: id is falsy', id)
+    }
   }, [id])
 
   const reviewsState = useReviewStore(state => state.reviews)
   const [filterCategory, setFilterCategory] = React.useState('')
+  React.useEffect(() => {
+    console.log('reviewsState changed', reviewsState)
+  }, [reviewsState])
+  const [selectedReview, setSelectedReview] = React.useState(null)
 
   React.useEffect(() => {
     fetchReviewsForBusiness(id, filterCategory ? { category: filterCategory } : {})
@@ -71,10 +81,15 @@ export default function BusinessDetail() {
           ) : (
             <ul className="space-y-3">
               {reviewsState.map(r => (
-                <li key={r._id} className="border rounded-lg p-3">
-                  <div className="text-sm text-gray-700">{r.comment}</div>
-                  <div className="text-xs text-gray-400 mt-2">By {r.user?.email || r.authorEmail} • {new Date(r.createdAt).toLocaleString()}</div>
-                  <div className="mt-2 text-sm text-gray-600">Scores — Quality: {r.rating?.quality}, Service: {r.rating?.service}, Value: {r.rating?.value}</div>
+                <li key={r._id} className="border rounded-lg p-3 flex gap-3 items-start cursor-pointer" onClick={() => setSelectedReview(r)}>
+                  <div className="w-20 h-20 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                    {r.photos && r.photos[0] ? <img src={r.photos[0].url || r.photos[0]} alt="thumb" className="w-full h-full object-cover" /> : <div className="text-xs text-gray-400">No image</div>}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm text-gray-700">{r.comment}</div>
+                    <div className="text-xs text-gray-400 mt-2">By {r.user?.email || r.authorEmail} • {new Date(r.createdAt).toLocaleString()}</div>
+                    <div className="mt-2 text-sm text-gray-600">Scores — Quality: {r.rating?.quality}, Service: {r.rating?.service}, Value: {r.rating?.value}</div>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -89,6 +104,7 @@ export default function BusinessDetail() {
           </div>
         </aside>
       </div>
+      {selectedReview && <ReviewModal review={selectedReview} onClose={() => setSelectedReview(null)} />}
     </div>
   )
 }

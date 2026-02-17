@@ -8,8 +8,14 @@ import { LogOut, Check, X, User } from 'lucide-react'
 export default function Dashboard() {
   const user = useAuthStore(state => state.user)
   const logout = useAuthStore(state => state.logout)
-  const pending = useReviewStore(state => state.pendingReviews)()
+  const pending = useReviewStore(state => state.reviews)
+  const fetchPending = useReviewStore(state => state.fetchPendingReviews)
 
+  React.useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchPending()
+    }
+  }, [user])
   return (
     <div className="space-y-6 animate-fadeInUp">
       <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-md">
@@ -46,16 +52,16 @@ export default function Dashboard() {
           </div>
           <ul className="mt-3 space-y-3">
             {pending.map(r => (
-            <li key={r.id} className="border rounded-lg p-3 flex items-start justify-between">
+            <li key={r._id} className="border rounded-lg p-3 flex items-start justify-between">
                 <div>
                   <div className="text-sm text-gray-700">{r.comment}</div>
-                  <div className="text-xs text-gray-400 mt-2">By {r.authorEmail} • {new Date(r.createdAt).toLocaleString()}</div>
+                  <div className="text-xs text-gray-400 mt-2">By {r.user?.email || r.authorEmail} • {new Date(r.createdAt).toLocaleString()}</div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <button onClick={() => useReviewStore.getState().approveReview(r.id)} className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded">
+                  <button onClick={() => useReviewStore.getState().approveReview(r._id)} className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded">
                     <Check className="w-4 h-4" /> Approve
                   </button>
-                  <button onClick={() => useReviewStore.getState().rejectReview(r.id)} className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded text-gray-700">
+                  <button onClick={() => useReviewStore.getState().rejectReview(r._id)} className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded text-gray-700">
                     <X className="w-4 h-4" /> Reject
                   </button>
                 </div>

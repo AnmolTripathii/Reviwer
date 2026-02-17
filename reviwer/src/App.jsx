@@ -10,6 +10,7 @@ import BusinessDetail from './pages/BusinessDetail'
 import ReviewForm from './components/ReviewForm'
 import AdminPending from './components/AdminPending'
 import Profile from './pages/Profile'
+import Signup from './components/Signup'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
             <Route path="/businesses" element={<BusinessList />} />
             <Route path="/businesses/:id" element={<BusinessDetail />} />
             <Route path="/submit" element={<ReviewForm />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/admin" element={user.role === 'admin' ? <AdminPending /> : <Navigate to="/" replace />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" replace />} />

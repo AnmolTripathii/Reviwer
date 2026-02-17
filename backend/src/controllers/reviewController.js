@@ -5,6 +5,18 @@ import Business from '../models/Business.js';
 export const createReview = async (req, res) => {
   try {
     const { businessId, rating, comment, category, photos } = req.body;
+    console.log('createReview called', { body: req.body, userPresent: !!req.user })
+
+    // Require authentication
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Authentication required' })
+    }
+
+    // Basic payload validation
+    if (!businessId) return res.status(400).json({ message: 'businessId is required' })
+    if (!comment && !(rating && (rating.quality || rating.service || rating.value))) {
+      return res.status(400).json({ message: 'Either comment or rating required' })
+    }
 
     // Check if business exists
     const business = await Business.findById(businessId);
@@ -46,6 +58,7 @@ export const createReview = async (req, res) => {
     });
 
     await review.save();
+    console.log('Created review with photos:', formattedPhotos)
 
     res.status(201).json({
       message: 'Review submitted successfully. Pending admin approval.',

@@ -21,6 +21,19 @@ const useAuthStore = create(persist((set, get) => ({
       return false
     }
   },
+  register: async (name, email, password) => {
+    try {
+      const res = await api.post('/api/auth/register', { name, email, password })
+      const { token, user } = res.data
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      set({ user, token })
+      toast.success('Registered and logged in')
+      return true
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Registration failed')
+      return false
+    }
+  },
   logout: () => {
     api.defaults.headers.common['Authorization'] = ''
     set({ user: null, token: null })
