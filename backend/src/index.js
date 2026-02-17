@@ -79,13 +79,20 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware
+// Multer error handling and general error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  // Multer error
+  if (err && err.name === 'MulterError') {
+    console.error('Multer error:', err)
+    return res.status(400).json({ message: err.message })
+  }
+
+  console.error(err && err.stack ? err.stack : err)
   res.status(500).json({
     message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
+    error: process.env.NODE_ENV === 'development' ? (err && err.message) : {}
+  })
+})
 
 // Start server function
 const startServer = async () => {

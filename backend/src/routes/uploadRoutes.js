@@ -1,35 +1,25 @@
 import express from 'express'
-import multer from 'multer'
-import streamifier from 'streamifier'
-import cloudinary from '../utils/cloudinary.js'
+import upload from '../middleware/uploadMulter.js'
+import { uploadSingle, uploadMultiple } from '../controllers/uploadController.js'
 
 const router = express.Router()
-const storage = multer.memoryStorage()
-const upload = multer({ storage })
 
-router.post('/', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: 'No file provided' })
+// Single file upload: field name 'file'
+router.post('/', upload.single('file'), uploadSingle)
 
-    const streamUpload = (buffer) => {
-      return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: process.env.CLOUDINARY_FOLDER || 'Reviwer' },
-          (error, result) => {
-            if (result) resolve(result)
-            else reject(error)
-          }
-        )
-        streamifier.createReadStream(buffer).pipe(stream)
-      })
-    }
+// Multiple files upload: field name 'files'
+router.post('/multiple', upload.array('files'), uploadMultiple)
 
-    const result = await streamUpload(req.file.buffer)
-    res.json({ url: result.secure_url, public_id: result.public_id })
-  } catch (err) {
-    console.error('Upload error', err)
-    res.status(500).json({ message: 'Upload failed', error: err.message })
-  }
+// Health/check endpoint for Cloudinary configuration
+router.get('/check', (req, res) => {
+  const configured = !!(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET && process.env.CLOUDINARY_CLOUD_NAME)
+  res.json({ configured })
+})
+
+// Health/check endpoint for Cloudinary configuration
+router.get('/check', (req, res) => {
+  const configured = !!(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET && process.env.CLOUDINARY_CLOUD_NAME)
+  res.json({ configured })
 })
 
 export default router

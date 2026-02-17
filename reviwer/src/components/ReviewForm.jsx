@@ -29,6 +29,11 @@ export default function ReviewForm() {
       photos,
     }
 
+    if (typeof submitReview !== 'function') {
+      toast.error('Submit unavailable. Try reloading the app.')
+      return
+    }
+
     (async () => {
       try {
         await submitReview(r)
@@ -36,7 +41,7 @@ export default function ReviewForm() {
         setComment('')
         setPhotos([])
       } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to submit review')
+        toast.error(err.response?.data?.message || err.message || 'Failed to submit review')
       }
     })()
   }
