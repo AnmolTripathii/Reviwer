@@ -12,11 +12,23 @@ const reviewSchema = new mongoose.Schema({
     required: true
   },
   rating: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 5
+    // Support structured ratings (quality/service/value) and computed average
+    quality: { type: Number, min: 1, max: 5, required: false },
+    service: { type: Number, min: 1, max: 5, required: false },
+    value: { type: Number, min: 1, max: 5, required: false },
+    average: { type: Number, min: 1, max: 5, required: false }
   },
+  category: {
+    type: String,
+    trim: true,
+    required: false,
+  },
+  photos: [
+    {
+      url: String,
+      public_id: String
+    }
+  ],
   comment: {
     type: String,
     required: true,

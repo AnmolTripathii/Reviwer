@@ -21,3 +21,11 @@ If you are developing a production application, we recommend using TypeScript wi
 - User: `user@test.com` / `UserPass123`
 
 Start the dev server with `npm run dev` in the `reviwer` folder. The frontend uses client-side mock auth and persisted zustand stores for demo purposes.
+
+## Environment
+
+Create a `.env` file in the `reviwer` folder with the backend URL:
+
+VITE_API_URL=http://localhost:5000
+
+This is used by the frontend axios client to call the backend API. Restart the dev server after updating env values.

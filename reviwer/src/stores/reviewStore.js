@@ -1,6 +1,7 @@
 import create from 'zustand'
 import { persist } from 'zustand/middleware'
 import api from '../utils/api'
+import useAuthStore from './authStore'
 
 const useReviewStore = create(persist((set, get) => ({
   reviews: [],
@@ -19,18 +20,27 @@ const useReviewStore = create(persist((set, get) => ({
     }
   },
   submitReview: async (review) => {
-    const res = await api.post('/api/reviews', review)
-    // pending admin approval; do not add to approved reviews list
-    set(state => ({ reviews: [res.data.review, ...state.reviews] }))
-    return res.data.review
+    try {
+      const token = useAuthStore.getState().token
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      const res = await api.post('/api/reviews', review, { headers })
+      // pending admin approval; do not add to approved reviews list
+      set(state => ({ reviews: [res.data.review, ...state.reviews] }))
+      return res.data.review
+    } catch (err) {
+      console.error('Failed to submit review', err)
+      throw err
+    }
   },
   approveReview: async (id) => {
-    await api.put(`/api/admin/reviews/${id}/approve`)
+    const token = useAuthStore.getState().token
+    await api.put(`/api/admin/reviews/${id}/approve`, {}, { headers: { Authorization: `Bearer ${token}` } })
     // remove from pending list locally
     set(state => ({ reviews: state.reviews.map(r => r._id === id ? { ...r, status: 'approved' } : r) }))
   },
   rejectReview: async (id) => {
-    await api.put(`/api/admin/reviews/${id}/reject`)
+    const token = useAuthStore.getState().token
+    await api.put(`/api/admin/reviews/${id}/reject`, {}, { headers: { Authorization: `Bearer ${token}` } })
     set(state => ({ reviews: state.reviews.filter(r => r._id !== id) }))
   },
   pendingReviews: () => get().reviews.filter(r => r.status !== 'approved'),

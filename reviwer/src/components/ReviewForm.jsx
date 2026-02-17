@@ -11,7 +11,7 @@ export default function ReviewForm() {
   const submitReview = useReviewStore(state => state.submitReview)
   const user = useAuthStore(state => state.user)
 
-  const [businessId, setBusinessId] = useState(businesses[0]?.id || '')
+  const [businessId, setBusinessId] = useState(businesses[0]?._id || '')
   const [quality, setQuality] = useState(5)
   const [service, setService] = useState(5)
   const [value, setValue] = useState(5)
@@ -28,10 +28,17 @@ export default function ReviewForm() {
       comment,
       photos,
     }
-    submitReview(r)
-    toast.success('Review submitted (pending approval)')
-    setComment('')
-    setPhotos([])
+
+    (async () => {
+      try {
+        await submitReview(r)
+        toast.success('Review submitted (pending approval)')
+        setComment('')
+        setPhotos([])
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to submit review')
+      }
+    })()
   }
 
   return (
@@ -45,7 +52,7 @@ export default function ReviewForm() {
           <label className="block text-sm text-gray-600 mb-1">Business</label>
           <select value={businessId} onChange={e => setBusinessId(e.target.value)} className="mt-1 block w-full border border-gray-200 rounded-lg px-3 py-2 bg-white">
             <option value="">Select a business</option>
-            {businesses.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+            {businesses.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
           </select>
         </div>
 
@@ -74,7 +81,7 @@ export default function ReviewForm() {
 
         <div>
           <label className="block text-sm text-gray-600 mb-2 flex items-center gap-2"><Image className="w-4 h-4" /> Photos</label>
-          <CloudinaryUpload onChange={(files) => setPhotos(files.map(f => ({ name: f.name }))) } />
+          <CloudinaryUpload onChange={(urls) => setPhotos(urls)} />
         </div>
 
         <div className="pt-2">

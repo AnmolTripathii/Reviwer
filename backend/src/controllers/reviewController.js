@@ -4,7 +4,7 @@ import Business from '../models/Business.js';
 // Create new review
 export const createReview = async (req, res) => {
   try {
-    const { businessId, rating, comment } = req.body;
+    const { businessId, rating, comment, category, photos } = req.body;
 
     // Check if business exists
     const business = await Business.findById(businessId);
@@ -22,11 +22,27 @@ export const createReview = async (req, res) => {
       return res.status(400).json({ message: 'You have already reviewed this business' });
     }
 
+    const avg = rating && typeof rating === 'object'
+      ? ((+rating.quality || 0) + (+rating.service || 0) + (+rating.value || 0)) / 3
+      : (typeof rating === 'number' ? rating : 0)
+
+    const formattedPhotos = (photos || []).map(p => {
+      if (typeof p === 'string') return { url: p }
+      return { url: p.url || p.secure_url, public_id: p.public_id }
+    })
+
     const review = new Review({
       business: businessId,
       user: req.user._id,
-      rating,
-      comment
+      rating: {
+        quality: rating?.quality,
+        service: rating?.service,
+        value: rating?.value,
+        average: +avg.toFixed(2)
+      },
+      comment,
+      category: category || business.category,
+      photos: formattedPhotos
     });
 
     await review.save();
@@ -44,7 +60,7 @@ export const createReview = async (req, res) => {
 export const getReviewsByBusiness = async (req, res) => {
   try {
     const { businessId } = req.params;
-    const { status = 'approved' } = req.query;
+    const { status = 'approved', category } = req.query;
 
     const query = { business: businessId };
     
@@ -53,6 +69,9 @@ export const getReviewsByBusiness = async (req, res) => {
       query.status = 'approved';
     } else if (status) {
       query.status = status;
+    }
+    if (category) {
+      query.category = category
     }
 
     const reviews = await Review.find(query)
@@ -145,12 +164,16 @@ const updateBusinessRating = async (businessId) => {
     });
     return;
   }
-
-  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-  const averageRating = totalRating / reviews.length;
+  // compute average from review.rating.average if available
+  const totalRating = reviews.reduce((sum, review) => {
+    const r = review.rating
+    const avg = r && r.average ? r.average : (typeof r === 'number' ? r : 0)
+    return sum + (+avg)
+  }, 0)
+  const averageRating = totalRating / reviews.length
 
   await Business.findByIdAndUpdate(businessId, {
-    averageRating: averageRating.toFixed(2),
+    averageRating: +averageRating.toFixed(2),
     totalReviews: reviews.length
   });
 };

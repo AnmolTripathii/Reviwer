@@ -1,8 +1,9 @@
+import dns from 'node:dns/promises';
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
 import User from './models/User.js'
-import Business from './models/Business.js';
-import Review from './models/Review.js';
+
 
 dotenv.config()
 
